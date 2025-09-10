@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editable Demo Wallet</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #0A0E17;
+            color: #FFFFFF;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overscroll-behavior: none;
+        }
+        .header {
+            background-color: #1A1F2E;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+        }
+        .settings-icon, .wallet-switch {
+            position: absolute;
+            top: 20px;
+            font-size: 28px;
+            cursor: pointer;
+            padding: 10px;
+        }
+        .settings-icon { right: 15px; }
+        .wallet-switch { left: 15px; }
+        .balance-section {
+            text-align: center;
+            padding: 25px;
+            background-color: #121826;
+            border-bottom: 1px solid #2A3147;
+        }
+        .balance-label {
+            font-size: 18px;
+            opacity: 0.7;
+        }
+        .balance-amount {
+            font-size: 40px;
+            font-weight: bold;
+            cursor: text;
+            padding: 5px;
+        }
+        .actions {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background-color: #0A0E17;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .action-btn {
+            background-color: #3772FF;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 18px;
+            flex: 1;
+            max-width: 150px;
+            text-align: center;
+        }
+        .action-btn:hover {
+            background-color: #2A5BD7;
+        }
+        .main-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 15px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .assets-list, .history-list, .dapps-section, .settings-section {
+            display: none;
+        }
+        .active {
+            display: block;
+        }
+        .asset-item, .history-item, .settings-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #1A1F2E;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            font-size: 16px;
+        }
+        .asset-info {
+            display: flex;
+            align-items: center;
+        }
+        .asset-icon {
+            width: 48px;
+            height: 48px;
+            background-color: #3772FF;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+        .asset-name {
+            font-size: 20px;
+        }
+        .asset-balance {
+            text-align: right;
+        }
+        .asset-crypto, .asset-usd {
+            font-size: 18px;
+        }
+        .asset-usd {
+            opacity: 0.7;
+        }
+        .history-item div {
+            flex: 1;
+            font-size: 16px;
+        }
+        .dapps-section, .settings-section {
+            padding: 20px 0;
+        }
+        .dapp-item {
+            background-color: #1A1F2E;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .add-btn {
+            background-color: #3772FF;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            margin: 15px auto;
+            display: block;
+            font-size: 18px;
+            width: 90%;
+            text-align: center;
+        }
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            background-color: #1A1F2E;
+            padding: 15px 0;
+            border-top: 1px solid #2A3147;
+        }
+        .nav-item {
+            text-align: center;
+            cursor: pointer;
+            padding: 10px;
+            flex: 1;
+        }
+        .nav-icon {
+            font-size: 28px;
+        }
+        .nav-label {
+            font-size: 14px;
+        }
+        [contenteditable="true"] {
+            border-bottom: 1px dotted #FFFFFF;
+            cursor: text;
+            padding: 5px;
+            outline: none;
+        }
+        @media (max-width: 600px) {
+            .balance-amount { font-size: 32px; }
+            .action-btn { padding: 12px; font-size: 16px; }
+            .asset-item, .history-item, .dapp-item, .settings-item { font-size: 14px; }
+            .asset-icon { width: 40px; height: 40px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="wallet-switch" onclick="alert('Switch wallet - demo only');">&#128100;</div>
+        <h1 contenteditable="true">Demo Wallet</h1>
+        <div class="settings-icon" onclick="showSection('settings')">&#9881;</div>
+    </div>
+    <div class="balance-section">
+        <div class="balance-label" contenteditable="true">Total Balance</div>
+        <div class="balance-amount" contenteditable="true">$0.00</div>
+    </div>
+    <div class="actions">
+        <button class="action-btn" onclick="alert('Send - demo only');">Send</button>
+        <button class="action-btn" onclick="alert('Receive - demo only');">Receive</button>
+        <button class="action-btn" onclick="alert('Buy - demo only');">Buy</button>
+        <button class="action-btn" onclick="alert('Swap - demo only');">Swap</button>
+    </div>
+    <div class="main-content">
+        <div id="assets" class="assets-list active">
+            <div class="asset-item">
+                <div class="asset-info">
+                    <div class="asset-icon" style="background-color: #F7931A;"></div>
+                    <div>
+                        <div class="asset-name" contenteditable="true">Bitcoin</div>
+                    </div>
+                </div>
+                <div class="asset-balance">
+                    <div class="asset-crypto" contenteditable="true">0 BTC</div>
+                    <div class="asset-usd" contenteditable="true">$0.00</div>
+                </div>
+            </div>
+            <div class="asset-item">
+                <div class="asset-info">
+                    <div class="asset-icon" style="background-color: #627EEA;"></div>
+                    <div>
+                        <div class="asset-name" contenteditable="true">Ethereum</div>
+                    </div>
+                </div>
+                <div class="asset-balance">
+                    <div class="asset-crypto" contenteditable="true">0 ETH</div>
+                    <div class="asset-usd" contenteditable="true">$0.00</div>
+                </div>
+            </div>
+            <button class="add-btn" onclick="addAsset()">Add Asset</button>
+        </div>
+        <div id="history" class="history-list">
+            <div class="history-item">
+                <div contenteditable="true">Sep 10, 2025</div>
+                <div contenteditable="true">Withdrawal: 0.5 BTC</div>
+                <div contenteditable="true">$25,000.00</div>
+                <div contenteditable="true">Completed</div>
+            </div>
+            <div class="history-item">
+                <div contenteditable="true">Aug 15, 2025</div>
+                <div contenteditable="true">Deposit: 2 ETH</div>
+                <div contenteditable="true">$5,000.00</div>
+                <div contenteditable="true">Pending</div>
+            </div>
+            <button class="add-btn" onclick="addHistoryItem()">Add Transaction</button>
+        </div>
+        <div id="dapps" class="dapps-section">
+            <div class="dapp-item" onclick="alert('Open DApp - demo only');" contenteditable="true">Uniswap</div>
+            <div class="dapp-item" onclick="alert('Open DApp - demo only');" contenteditable="true">PancakeSwap</div>
+            <button class="add-btn" onclick="addDApp()">Add DApp</button>
+        </div>
+        <div id="settings" class="settings-section">
+            <div class="settings-item">
+                <div contenteditable="true">Currency: USD</div>
+            </div>
+            <div class="settings-item">
+                <div contenteditable="true">Network: Mainnet</div>
+            </div>
+            <div class="settings-item">
+                <div contenteditable="true">Security: Enabled</div>
+            </div>
+            <button class="add-btn" onclick="addSetting()">Add Setting</button>
+        </div>
+    </div>
+    <div class="bottom-nav">
+        <div class="nav-item" onclick="showSection('assets')">
+            <div class="nav-icon">&#128176;</div>
+            <div class="nav-label" contenteditable="true">Wallet</div>
+        </div>
+        <div class="nav-item" onclick="showSection('dapps')">
+            <div class="nav-icon">&#127760;</div>
+            <div class="nav-label" contenteditable="true">DApps</div>
+        </div>
+        <div class="nav-item" onclick="showSection('history')">
+            <div class="nav-icon">&#128197;</div>
+            <div class="nav-label" contenteditable="true">History</div>
+        </div>
+        <div class="nav-item" onclick="showSection('settings')">
+            <div class="nav-icon">&#9881;</div>
+            <div class="nav-label" contenteditable="true">Settings</div>
+        </div>
+    </div>
+    <script>
+        // Section switching
+        function showSection(sectionId) {
+            document.querySelectorAll('.main-content > div').forEach(div => div.classList.remove('active'));
+            document.getElementById(sectionId).classList.add('active');
+            document.querySelectorAll('.add-btn').forEach(btn => btn.style.display = 'none');
+            document.querySelector(`#${sectionId} .add-btn`).style.display = 'block';
+        }
+
+        // Add new asset
+        function addAsset() {
+            const assetsList = document.getElementById('assets');
+            const newAsset = document.createElement('div');
+            newAsset.className = 'asset-item';
+            newAsset.innerHTML = `
+                <div class="asset-info">
+                    <div class="asset-icon" style="background-color: #${Math.floor(Math.random()*16777215).toString(16)};"></div>
+                    <div>
+                        <div class="asset-name" contenteditable="true">New Asset</div>
+                    </div>
+                </div>
+                <div class="asset-balance">
+                    <div class="asset-crypto" contenteditable="true">0 UNIT</div>
+                    <div class="asset-usd" contenteditable="true">$0.00</div>
+                </div>
+            `;
+            assetsList.insertBefore(newAsset, assetsList.lastElementChild);
+            saveState();
+        }
+
+        // Add new history item
+        function addHistoryItem() {
+            const historyList = document.getElementById('history');
+            const newItem = document.createElement('div');
+            newItem.className = 'history-item';
+            newItem.innerHTML = `
+                <div contenteditable="true">New Date</div>
+                <div contenteditable="true">Transaction</div>
+                <div contenteditable="true">$0.00</div>
+                <div contenteditable="true">Status</div>
+            `;
+            historyList.insertBefore(newItem, historyList.lastElementChild);
+            saveState();
+        }
+
+        // Add new DApp
+        function addDApp() {
+            const dappsSection = document.getElementById('dapps');
+            const newDApp = document.createElement('div');
+            newDApp.className = 'dapp-item';
+            newDApp.setAttribute('contenteditable', 'true');
+            newDApp.textContent = 'New DApp';
+            newDApp.onclick = () => alert('Open DApp - demo only');
+            dappsSection.insertBefore(newDApp, dappsSection.lastElementChild);
+            saveState();
+        }
+
+        // Add new setting
+        function addSetting() {
+            const settingsSection = document.getElementById('settings');
+            const newSetting = document.createElement('div');
+            newSetting.className = 'settings-item';
+            newSetting.innerHTML = `<div contenteditable="true">New Setting</div>`;
+            settingsSection.insertBefore(newSetting, settingsSection.lastElementChild);
+            saveState();
+        }
+
+        // Save state to localStorage
+        function saveState() {
+            localStorage.setItem('demoWalletState', document.body.innerHTML);
+        }
+
+        // Load from localStorage
+        if (localStorage.getItem('demoWalletState')) {
+            document.body.innerHTML = localStorage.getItem('demoWalletState');
+            document.querySelectorAll('.nav-item').forEach(item => {
+                const section = item.querySelector('.nav-label').textContent.toLowerCase();
+                item.onclick = () => showSection(section === 'wallet' ? 'assets' : section);
+            });
+            document.querySelector('.settings-icon').onclick = () => showSection('settings');
+            document.querySelector('.wallet-switch').onclick = () => alert('Switch wallet - demo only');
+            document.querySelectorAll('.action-btn').forEach(btn => {
+                btn.onclick = () => alert(`${btn.textContent} - demo only`);
+            });
+            document.querySelectorAll('.dapp-item').forEach(dapp => {
+                dapp.onclick = () => alert('Open DApp - demo only');
+            });
+        }
+
+        // Save on any edit
+        document.addEventListener('input', saveState);
+
+        console.log('Mobile-optimized Demo Wallet loaded. Tap to edit balances and history.');
+    </script>
+</body>
+</html>
